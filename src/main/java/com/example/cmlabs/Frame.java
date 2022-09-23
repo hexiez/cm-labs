@@ -34,9 +34,10 @@ public class Frame extends JPanel {
     HatchedAxes hatchedAxes = new HatchedAxes(g2, borderGap, 12, getWidth(), getHeight());
     hatchedAxes.draw(xStrokeCount, yStrokeCount);
 
-    Function<Double, Double> function = x -> Math.log1p(1/(Math.pow(x, 2) + 1) - 1) * Math.cos(x);
-    Graph graph = new Graph(g2, borderGap, xStrokeCount, yStrokeCount, getWidth(), getHeight(), function);
-    graph.draw(10, 10);
+    //Math.log1p(1/(Math.pow(x, 2) + 1) - 1) * Math.cos(x)
+    Function<Double, Double> function = x -> Math.pow(x, 2);
+    Graph graph = new Graph(g2, borderGap, 10, 10, getWidth(), getHeight());
+    graph.draw(function);
   }
 
   private Graphics2D configGraphics(Graphics graphics) {

@@ -8,42 +8,55 @@ import java.util.function.Function;
 public class Graph {
   private final Graphics2D g2;
   private final int borderGap;
-  private final int xStrokeCount;
-  private final int yStrokeCount;
-  private final int graphWidth;
-  private final int graphHeight;
-  private final Function<Double, Double> function;
+  private final int xMax;
+  private final int yMax;
+  private final double graphComponentWidth;
+  private final double graphComponentHeight;
 
   private final List<Point> graphPoints = new ArrayList<>();
 
-  public Graph(Graphics2D g2, int borderGap, int xStrokeCount, int yStrokeCount,
-               int graphWidth, int graphHeight, Function<Double, Double> function) {
+  public Graph(Graphics2D g2, int borderGap, int xMax, int yMax, int graphWidth, int graphHeight) {
     this.g2 = g2;
     this.borderGap = borderGap;
-    this.xStrokeCount = xStrokeCount;
-    this.yStrokeCount = yStrokeCount;
-    this.graphWidth = graphWidth;
-    this.graphHeight = graphHeight;
-    this.function = function;
+    this.xMax = xMax;
+    this.yMax = yMax;
+    this.graphComponentWidth = ((double) graphWidth - 2 * borderGap);;
+    this.graphComponentHeight = ((double) graphHeight - 2 * borderGap);
   }
 
-  public void draw(int xMax, int yMax) {
-    drawPoints(xMax, yMax);
+  public void draw(Function<Double, Double> function) {
+    drawPoints(function);
+    drawLines();
+
+    drawDerivativePoints(function);
+    drawLines();
+
+    drawPoints(x -> 2 * x);
     drawLines();
   }
 
-  private void drawPoints(int xMax, int yMax) {
-    double graphComponentWidth = ((double) graphWidth - 2 * borderGap);
-    double graphComponentHeight = ((double) graphHeight - 2 * borderGap);
-    double yScale = graphComponentHeight / (2 * yMax);
-
+  private void drawPoints(Function<Double, Double> function) {
     for (int i = 0; i < graphComponentWidth; i++) {
       double funcRes = function.apply(((i / graphComponentWidth) - 0.5) * 2 * xMax);
       if (Double.isNaN(funcRes)) continue;
       int x1 = i + borderGap;
+      double yScale = graphComponentHeight / (2 * yMax);
       int y1 = (int) ((yMax - funcRes) * yScale + borderGap);
       graphPoints.add(new Point(x1, y1));
     }
+    // f`(i) = (f(i * (xMax) / gCW) - f((i-1) * (xMax) / gCW)) * gCW / xMax
+  }
+
+  private void drawDerivativePoints(Function<Double, Double> function) {
+    double xMaxDivideGCW = (2 * xMax) / graphComponentWidth;
+    Function<Double, Double> derivative = x ->
+      (
+          function.apply((x + 1) * xMaxDivideGCW)
+        -
+          function.apply(x * xMaxDivideGCW)
+      )
+        / xMaxDivideGCW;
+    drawPoints(derivative);
   }
 
   private void drawLines() {
@@ -54,5 +67,6 @@ public class Graph {
       int y2 = graphPoints.get(i + 1).y;
       g2.drawLine(x1, y1, x2, y2);
     }
+    graphPoints.clear();
   }
 }
