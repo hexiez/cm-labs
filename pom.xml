@@ -9,7 +9,7 @@
     <description>cm-labs</description>
     <properties>
         <java.version>17</java.version>
-        <mavem.compiler.source>1.8</mavem.compiler.source>
-        <mavem.compiler.target>1.8</mavem.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
     </properties>
 </project>

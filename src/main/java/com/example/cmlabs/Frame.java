@@ -34,10 +34,10 @@ public class Frame extends JPanel {
     HatchedAxes hatchedAxes = new HatchedAxes(g2, borderGap, 12, getWidth(), getHeight());
     hatchedAxes.draw(xStrokeCount, yStrokeCount);
 
-    //Math.log1p(1/(Math.pow(x, 2) + 1) - 1) * Math.cos(x)
-    Function<Double, Double> function = x -> Math.pow(x, 2);
-    Graph graph = new Graph(g2, borderGap, 10, 10, getWidth(), getHeight());
-    graph.draw(function);
+    Function<Double, Double> labFunction = x -> Math.log1p(1/(Math.pow(x, 2) + 1) - 1) * Math.cos(x);
+    Function<Double, Double> testFunction = x -> Math.sin(1/x);
+    Graph graph = new Graph(g2, borderGap, 5, 100, getWidth(), getHeight());
+    graph.draw(testFunction);
   }
 
   private Graphics2D configGraphics(Graphics graphics) {

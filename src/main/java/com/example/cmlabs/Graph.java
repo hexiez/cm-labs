@@ -30,9 +30,6 @@ public class Graph {
 
     drawDerivativePoints(function);
     drawLines();
-
-    drawPoints(x -> 2 * x);
-    drawLines();
   }
 
   private void drawPoints(Function<Double, Double> function) {
@@ -44,18 +41,12 @@ public class Graph {
       int y1 = (int) ((yMax - funcRes) * yScale + borderGap);
       graphPoints.add(new Point(x1, y1));
     }
-    // f`(i) = (f(i * (xMax) / gCW) - f((i-1) * (xMax) / gCW)) * gCW / xMax
   }
 
   private void drawDerivativePoints(Function<Double, Double> function) {
-    double xMaxDivideGCW = (2 * xMax) / graphComponentWidth;
     Function<Double, Double> derivative = x ->
-      (
-          function.apply((x + 1) * xMaxDivideGCW)
-        -
-          function.apply(x * xMaxDivideGCW)
-      )
-        / xMaxDivideGCW;
+      (function.apply(x) - function.apply(x - xMax / graphComponentWidth))
+      * graphComponentWidth / xMax;
     drawPoints(derivative);
   }
 
