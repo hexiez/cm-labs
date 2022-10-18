@@ -1,8 +1,7 @@
 package com.example.cmlabs;
 
 import java.awt.*;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 import java.util.function.Function;
 
@@ -13,11 +12,12 @@ public class Graph {
   private final double yMax;
   private final double graphComponentWidth;
   private final double graphComponentHeight;
-  private final List<Point> graphPoints = new ArrayList<>();
-  private ArrayDeque<Color> colorQueue = new ArrayDeque<>();
+  private final ArrayDeque<List<Point>> graphics = new ArrayDeque<>();
+  private final ColorsList colors = new ColorsList();
 
   public Graph(Graphics2D g2, int borderGap, double xMax, double yMax, int graphWidth, int graphHeight) {
     this.g2 = g2;
+    this.g2.setClip(borderGap, borderGap, graphWidth - 2 * borderGap, graphHeight - 2 * borderGap);
     this.borderGap = borderGap;
     this.xMax = xMax;
     this.yMax = yMax;
@@ -32,64 +32,65 @@ public class Graph {
 
   public void draw(Function<Double, Double> function) {
     drawPoints(function);
-    if (colorQueue.isEmpty()) colorQueue = new ArrayDeque<>(List.of(
-      Color.RED, Color.BLUE, Color.GREEN, Color.MAGENTA));
-    drawLines(colorQueue.poll());
+    drawLines(colors.getNextColor());
   }
 
   private void drawPoints(Function<Double, Double> function) {
-    boolean funcIsAbroadPositive = false;
-    boolean funcIsAbroadNegative = false;
-    for (int i = 0; i < graphComponentWidth; i++) {
-      double funcRes = function.apply(((i / graphComponentWidth) - 0.5) * 2 * xMax);
+    graphics.addFirst(new ArrayList<>());
+    for (int i = 0; i < graphComponentWidth - 1; ++i) {
+      double leftX = ((i / graphComponentWidth) - 0.5) * 2 * xMax;
+      double rightX = (((i + 1) / graphComponentWidth) - 0.5) * 2 * xMax;
 
-      if (funcRes > yMax && !funcIsAbroadPositive) {
-        funcRes = yMax;
-        funcIsAbroadPositive = true;
-        addPoint(i, funcRes);
-      } else if (funcRes <= yMax && funcIsAbroadPositive) {
-        funcRes = yMax;
-        funcIsAbroadPositive = false;
-        addPoint(i, funcRes);
-      } else if (funcRes < -yMax && !funcIsAbroadNegative) {
-        funcRes = -yMax;
-        funcIsAbroadNegative = true;
-        addPoint(i, funcRes);
-      } else if (funcRes >= -yMax && funcIsAbroadNegative) {
-        funcRes = -yMax;
-        funcIsAbroadNegative = false;
-        addPoint(i, funcRes);
-      } else if (!funcIsAbroadNegative && !funcIsAbroadPositive && !Double.isNaN(funcRes)) {
-        addPoint(i, funcRes);
+      double funcRes = function.apply(leftX);
+      if (Double.isNaN(funcRes)) continue;
+
+      addPoint(i, funcRes, graphics.element());
+      discontinuityPresent(leftX, rightX, function).ifPresent(value -> graphics.addFirst(new ArrayList<>()));
+    }
+  }
+
+  private void addPoint(double x, double y, List<Point> graphic) {
+    int x1 = (int) (x + borderGap);
+    int y1 = (int) ((yMax - y) * graphComponentHeight / (2 * yMax) + borderGap);
+    graphic.add(new Point(x1, y1));
+  }
+
+  private Optional<Double> discontinuityPresent(double leftX, double rightX, Function<Double, Double> function) {
+    while(true) {
+      double leftY = function.apply(leftX);
+      double rightY = function.apply(rightX);
+      double middleX = (leftX + rightX) / 2;
+      double middleY = function.apply(middleX);
+      double leftSlope = Math.abs(slope(leftX, leftY, middleX, middleY));
+      double rightSlope = Math.abs(slope(middleX, middleY, rightX, rightY));
+
+      if(Double.isInfinite(leftSlope) || Double.isInfinite(rightSlope)) {
+        return Optional.of(middleX);
+      } else if (middleX == leftX || middleX == rightX) {
+        return Optional.empty();
+      }
+
+      if (leftSlope > rightSlope) {
+        rightX = middleX;
+      } else {
+        leftX = middleX;
       }
     }
   }
 
-  private void addPoint(double x, double y) {
-    int x1 = (int) (x + borderGap);
-    int y1 = (int) ((yMax - y) * graphComponentHeight / (2 * yMax) + borderGap);
-    graphPoints.add(new Point(x1, y1));
-  }
-
-  private void drawDerivativePoints(Function<Double, Double> function) {
-    Function<Double, Double> derivative = x ->
-      (function.apply(x) - function.apply(x - xMax / graphComponentWidth))
-      * graphComponentWidth / xMax;
-    drawPoints(derivative);
+  private double slope(double x1, double y1, double x2, double y2) {
+    return (y2 - y1) / (x2 - x1);
   }
 
   private void drawLines(Color color) {
     g2.setColor(color);
-    for (int i = 0; i < graphPoints.size() - 1; i++) {
-      int x1 = graphPoints.get(i).x;
-      int y1 = graphPoints.get(i).y;
-      int x2 = graphPoints.get(i + 1).x;
-      int y2 = graphPoints.get(i + 1).y;
-      if ((y1 != graphComponentHeight + 30 && y1 != borderGap)
-        || (y2 != graphComponentHeight + 30  && y2 != borderGap)) {
-        g2.drawLine(x1, y1, x2, y2);
+    for (List<Point> graphic : graphics) {
+      for (int i = 0; i < graphic.size() - 1; i++) {
+        Point first = graphic.get(i);
+        Point second = graphic.get(i + 1);
+        g2.drawLine(first.x, first.y, second.x, second.y);
       }
+      graphic.clear();
     }
-    graphPoints.clear();
   }
 }

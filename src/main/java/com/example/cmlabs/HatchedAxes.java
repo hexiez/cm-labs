@@ -57,11 +57,6 @@ public class HatchedAxes {
     }
   }
 
-  private void drawXAxisLabel(int x, int y, int strokeCount, int iteration) {
-    int result = (int) (-(2 * xMax / strokeCount) * (strokeCount / 2d - iteration));
-    g2.drawString(String.valueOf(result), x, y);
-  }
-
   private void drawYAxisStrokes(int strokeCount) {
     for (int i = 0; i < strokeCount + 1; i++) {
       int x0 = (graphWidth - 2 * borderGap) / 2 + borderGap - strokeSize / 2;
@@ -70,18 +65,26 @@ public class HatchedAxes {
       int y1 = y0;
       drawSideAxes(borderGap, y0, graphWidth - borderGap, y1);
       g2.drawLine(x0, y0, x1, y1);
-      drawYAxisLabel(x0 - 2 * strokeSize, y0 + 7, strokeCount, i);
+      drawYAxisLabel(x0 - 3 * strokeSize, y0 + 5, strokeCount, i);
     }
   }
 
+  private void drawXAxisLabel(int x, int y, int strokeCount, int iteration) {
+    double result = (-(2 * xMax / strokeCount) * (strokeCount / 2d - iteration));
+    String[] doubleParts = String.valueOf(result).split("\\.");
+    String label = doubleParts[1].equals("0") ? doubleParts[0] : String.format("%.2f", result);
+    g2.drawString(label, x, y);
+  }
+
   private void drawYAxisLabel(int x, int y, int strokeCount, int iteration) {
-    int result = (int) (-(2 * yMax / strokeCount) * (strokeCount / 2d - iteration));
-    if (result == 0) return;
-    g2.drawString(String.valueOf(result), x, y);
+    double result = (-(2 * yMax / strokeCount) * (strokeCount / 2d - iteration));
+    String[] doubleParts = String.valueOf(result).split("\\.");
+    String label = doubleParts[1].equals("0") ? doubleParts[0] : String.format("%.2f", result);
+    g2.drawString(label, x, y);
   }
 
   private void drawSideAxes(int x0, int y0, int x1, int y1) {
-    g2.setColor(Color.LIGHT_GRAY);
+    g2.setColor(new Color(0xDCDCDC));
     g2.drawLine(x0, y0, x1, y1);
     g2.setColor(Color.BLACK);
   }
