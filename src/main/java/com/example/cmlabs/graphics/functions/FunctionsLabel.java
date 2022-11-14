@@ -1,4 +1,6 @@
-package com.example.cmlabs;
+package com.example.cmlabs.graphics.functions;
+
+import com.example.cmlabs.data.ColorsList;
 
 import java.awt.*;
 import java.util.List;

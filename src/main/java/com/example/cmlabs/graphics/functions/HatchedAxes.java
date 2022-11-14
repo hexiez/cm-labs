@@ -1,7 +1,9 @@
-package com.example.cmlabs;
+package com.example.cmlabs.graphics.functions;
 
 import javax.swing.*;
 import java.awt.*;
+import java.text.DecimalFormat;
+import java.util.regex.Pattern;
 
 public class HatchedAxes {
   private final Graphics2D g2;
@@ -11,6 +13,7 @@ public class HatchedAxes {
   private final int graphHeight;
   private final double xMax;
   private final double yMax;
+  private Integer fontSize;
 
   public HatchedAxes(Graphics2D g2, int borderGap, int strokeSize, int graphWidth, int graphHeight, double xMax, double yMax) {
     this.g2 = g2;
@@ -22,11 +25,19 @@ public class HatchedAxes {
     this.yMax = yMax;
   }
 
+  public HatchedAxes(Graphics2D g2, int borderGap, int strokeSize, int graphWidth, int graphHeight, double xMax, double yMax, Integer fontSize) {
+    this(g2, borderGap, strokeSize, graphWidth, graphHeight, xMax, yMax);
+    this.fontSize = fontSize;
+  }
+
   public void draw(int xCount, int yCount) {
+    Font prevFont = g2.getFont();
+    g2.setFont(new Font("Serif", Font.PLAIN, fontSize == null ? graphWidth / 60 : fontSize));
     drawXAxisStrokes(xCount);
     drawYAxisStrokes(yCount);
     drawXAxis();
     drawYAxis();
+    g2.setFont(prevFont);
   }
 
   private void drawXAxis() {
@@ -72,14 +83,16 @@ public class HatchedAxes {
   private void drawXAxisLabel(int x, int y, int strokeCount, int iteration) {
     double result = (-(2 * xMax / strokeCount) * (strokeCount / 2d - iteration));
     String[] doubleParts = String.valueOf(result).split("\\.");
-    String label = doubleParts[1].equals("0") ? doubleParts[0] : String.format("%.2f", result);
+
+    String label = doubleParts[1].equals("0") ? doubleParts[0] : new DecimalFormat("0E0").format(result);
     g2.drawString(label, x, y);
   }
 
   private void drawYAxisLabel(int x, int y, int strokeCount, int iteration) {
     double result = (-(2 * yMax / strokeCount) * (strokeCount / 2d - iteration));
     String[] doubleParts = String.valueOf(result).split("\\.");
-    String label = doubleParts[1].equals("0") ? doubleParts[0] : String.format("%.2f", result);
+
+    String label = doubleParts[1].equals("0") ? doubleParts[0] : new DecimalFormat("0E0").format(result);
     g2.drawString(label, x, y);
   }
 

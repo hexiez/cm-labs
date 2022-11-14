@@ -1,4 +1,4 @@
-package com.example.cmlabs;
+package com.example.cmlabs.data;
 
 import java.awt.*;
 import java.util.ArrayList;
